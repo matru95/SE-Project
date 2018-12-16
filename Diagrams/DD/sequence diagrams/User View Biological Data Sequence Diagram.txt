@@ -1,0 +1,37 @@
+title User View Biomedical Data Sequence Diagram
+participant User
+participant ApplicationInterface
+participant UserRequestHandler
+participant DataPresentation
+participant DataHandler
+
+User->ApplicationInterface:clickBiomedicalParametersButton()
+activate User
+activate ApplicationInterface
+ApplicationInterface->UserRequestHandler:sendBiomedicalParametersRequest(userID)
+activate UserRequestHandler
+UserRequestHandler->DataPresentation:forwardBiomedicalParametersRequest(userID)
+activate DataPresentation
+DataPresentation->DataHandler:getBiomedicalParameters(userID)
+activate DataHandler
+DataHandler->DataHandler:queryDBMS()
+activate DataHandler
+space
+deactivate DataHandler
+DataPresentation<--DataHandler:requestedData
+deactivate DataHandler
+DataPresentation->DataPresentation:dataProcessingAndPlotting(requestedData)
+activate DataPresentation
+space
+deactivate DataPresentation
+UserRequestHandler<--DataPresentation:processedData
+deactivate DataPresentation
+ApplicationInterface<--UserRequestHandler:processedData
+deactivate UserRequestHandler
+ApplicationInterface->ApplicationInterface:displayBiomedicalData(processedData)
+activate ApplicationInterface
+space
+deactivate ApplicationInterface
+User<--ApplicationInterface:
+deactivate ApplicationInterface
+deactivate User

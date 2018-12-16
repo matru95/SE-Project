@@ -1,0 +1,109 @@
+title User Track4Run Sequence Diagram
+participant User
+participant ApplicationInterface
+participant UserRequestHandler
+participant EventHandler
+participant DataHandler
+participant ViewMap
+
+
+User->ApplicationInterface:clickTrack4RunButton()
+activate ApplicationInterface
+activate User
+ApplicationInterface->UserRequestHandler:sendTrack4RunRequest()
+activate UserRequestHandler
+UserRequestHandler->EventHandler:forwardTrack4RunRequest()\n
+activate EventHandler
+EventHandler->DataHandler:getEventsList()
+activate DataHandler
+DataHandler->DataHandler:queryDBMS()
+activate DataHandler
+space
+deactivate DataHandler
+EventHandler<--DataHandler:eventsList
+deactivate DataHandler
+UserRequestHandler<--EventHandler:eventsList
+deactivate EventHandler
+ApplicationInterface<--UserRequestHandler:eventsList
+deactivate UserRequestHandler
+ApplicationInterface->ApplicationInterface:displayTrack4RunPage(eventsList)
+activate ApplicationInterface
+space
+deactivate ApplicationInterface
+User<--ApplicationInterface:
+deactivate ApplicationInterface
+User->ApplicationInterface:selectAnEvent()
+activate ApplicationInterface
+ApplicationInterface->UserRequestHandler:sendEventRequest(eventID)
+activate UserRequestHandler
+UserRequestHandler->EventHandler:forwardEventRequest(eventID)
+activate EventHandler
+EventHandler->DataHandler:getEventData(eventID)
+activate DataHandler
+DataHandler->DataHandler:queryDBMS()
+activate DataHandler
+space
+deactivate DataHandler
+EventHandler<--DataHandler:eventData
+deactivate DataHandler
+EventHandler->ViewMap:getMap(eventID)
+activate ViewMap
+ViewMap->ViewMap:callAPI()
+activate ViewMap
+space
+deactivate ViewMap
+EventHandler<--ViewMap:eventMap
+deactivate ViewMap
+UserRequestHandler<--EventHandler:eventData, eventMap
+deactivate EventHandler
+ApplicationInterface<--UserRequestHandler:eventData, eventMap
+deactivate UserRequestHandler
+ApplicationInterface->ApplicationInterface:displaySelectedEvent(eventData, eventMap)
+activate ApplicationInterface
+space
+deactivate ApplicationInterface
+User<--ApplicationInterface:
+deactivate ApplicationInterface
+User->ApplicationInterface:clickEnrolButton()
+activate ApplicationInterface
+ApplicationInterface->UserRequestHandler:sendEnrollmentRequest(userID, eventID)
+activate UserRequestHandler
+UserRequestHandler->EventHandler:forwardEnrollmentRequest(userID, eventID)
+activate EventHandler
+
+assert
+EventHandler->EventHandler:isUserAlreadyEnrolled(userID, eventID)
+activate EventHandler
+space
+deactivate EventHandler
+end 
+
+alt true
+UserRequestHandler<--EventHandler:userAlreadyEnrolledException
+deactivate EventHandler
+ApplicationInterface<--UserRequestHandler:outcome := userAlreadyEnrolledException
+deactivate UserRequestHandler
+else false
+activate UserRequestHandler
+activate EventHandler
+EventHandler->DataHandler:enrollUser(userID, eventID)
+activate DataHandler
+DataHandler->DataHandler:updateDBMS()
+activate DataHandler
+space
+deactivate DataHandler
+EventHandler<--DataHandler:enrollmentConfirmation
+deactivate DataHandler
+UserRequestHandler<--EventHandler:enrollmentConfirmation
+deactivate EventHandler
+ApplicationInterface<--UserRequestHandler:outcome := enrollmentConfirmation
+deactivate UserRequestHandler
+end
+
+ApplicationInterface->ApplicationInterface:showPopup(outcome)
+activate ApplicationInterface
+space
+deactivate ApplicationInterface
+User<--ApplicationInterface:
+deactivate User
+deactivate ApplicationInterface

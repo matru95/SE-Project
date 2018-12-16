@@ -1,0 +1,42 @@
+title AutomatedSOS Sequence Diagram
+participant DataThresholdChecker
+participant AmbulanceDispatcherHandler
+participant DataHandler
+participant Ambulance Dispatcher
+
+loop looping costantly over each user using AutomatedSOS
+
+DataThresholdChecker->DataHandler:getParameters(userID)
+activate DataThresholdChecker
+activate DataHandler
+DataHandler->DataHandler:queryDBMS()
+activate DataHandler
+space
+deactivate DataHandler
+DataThresholdChecker<--DataHandler:requestedParameters
+deactivate DataHandler
+DataThresholdChecker->DataThresholdChecker:checkParametersThresholds(requestedParameters)
+activate DataThresholdChecker
+space
+deactivate DataThresholdChecker
+consider parametersBelowThresholds
+DataThresholdChecker->AmbulanceDispatcherHandler:initSOSRequest(userID)
+activate AmbulanceDispatcherHandler
+AmbulanceDispatcherHandler->DataHandler:getUserPosition(userID)
+activate DataHandler
+DataHandler->DataHandler:queryDBMS()
+activate DataHandler
+space
+deactivate DataHandler
+AmbulanceDispatcherHandler<--DataHandler:userPosition
+deactivate DataHandler
+AmbulanceDispatcherHandler->Ambulance Dispatcher:sendSOSRequest(userPosition)
+activate Ambulance Dispatcher
+AmbulanceDispatcherHandler<--Ambulance Dispatcher:
+deactivate Ambulance Dispatcher
+DataThresholdChecker<--AmbulanceDispatcherHandler:
+deactivate AmbulanceDispatcherHandler
+deactivate DataThresholdChecker
+
+end 
+end

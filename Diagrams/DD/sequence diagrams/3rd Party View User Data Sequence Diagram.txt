@@ -1,0 +1,67 @@
+title 3rd Party View User Data Sequence Diagram
+participant 3rdParty
+participant WebInterface
+participant 3rdPartyRequestHandler
+participant DataPresentation
+participant DataHandler
+
+3rdParty->WebInterface:clickViewUserDataButton()
+activate 3rdParty
+activate WebInterface
+WebInterface->3rdPartyRequestHandler:sendUsersListRequest(partyID)
+activate 3rdPartyRequestHandler
+3rdPartyRequestHandler->DataHandler:forwardViewUsersDataRequest(partyID)
+activate DataHandler
+DataHandler->DataHandler:queryDBMS()
+activate DataHandler
+space
+deactivate DataHandler
+3rdPartyRequestHandler<--DataHandler:usersList
+deactivate DataHandler
+WebInterface<--3rdPartyRequestHandler:usersList
+deactivate 3rdPartyRequestHandler
+WebInterface->WebInterface:displayUsersList(usersList)
+activate WebInterface
+space
+deactivate WebInterface
+3rdParty<--WebInterface:
+deactivate WebInterface
+3rdParty->WebInterface:clickOnUser()
+activate WebInterface
+WebInterface->3rdPartyRequestHandler:sendViewUserDataRequest(userID)
+activate 3rdPartyRequestHandler
+3rdPartyRequestHandler->DataPresentation:forwardViewUserDataRequest(userID)
+activate DataPresentation
+DataPresentation->DataHandler:getUserData(userID)
+activate DataHandler
+DataHandler->DataHandler:queryDBMS()
+activate DataHandler
+space
+deactivate DataHandler
+
+DataPresentation<--DataHandler:userRawData
+deactivate DataHandler
+DataPresentation->DataPresentation:dataProcessingAndPlotting(userRawData)
+activate DataPresentation
+space
+deactivate DataPresentation
+3rdPartyRequestHandler<--DataPresentation:userProcessedData
+deactivate DataPresentation
+
+WebInterface<--3rdPartyRequestHandler:userProcessedData
+deactivate 3rdPartyRequestHandler
+WebInterface->WebInterface:displayUserData(userProcessedData)
+activate WebInterface
+space
+deactivate WebInterface
+
+3rdParty<--WebInterface:
+3rdParty->WebInterface:clickDownloadButton()
+
+WebInterface->WebInterface:downloadData(userProcessedData)
+activate WebInterface
+space
+deactivate WebInterface
+3rdParty<--WebInterface:
+deactivate WebInterface
+deactivate 3rdParty

@@ -1,0 +1,44 @@
+title User Registration Sequence Diagram
+
+actor User
+participant System
+database DBMS
+participant Device
+
+User->System:clickRegisterButton()
+activate User
+activate System
+User<--System:form
+User->System:fillUpForm(data)
+System->System:checkDataValidity(data)
+activate System
+deactivateafter System
+alt MailAlreadyUsed
+User<--System:mailAlreadyUsedError
+else FiscalCodeAlreadyUsed
+User<--System:fiscalCodeAlreadyUsedError
+else CorrectData
+System->DBMS:createUserInstanceOnDB(data)
+activate DBMS
+DBMS->DBMS:processRequest()
+activate DBMS
+deactivateafter DBMS
+System<--DBMS:
+deactivate DBMS
+User<--System:requestAddFirstDevice
+deactivate System
+User->Device:addNewDevice()
+activate Device
+Device->Device:pairingWithSmartphone()
+activate Device
+deactivateafter Device
+User<--Device:correctPairing
+deactivate User
+loop
+System<-Device:dataSynchronization()
+activate System
+System-->Device:
+deactivate System
+deactivate Device
+end
+end
