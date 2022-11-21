@@ -1,0 +1,146 @@
+title 3rd Party Add User Sequence Diagram
+participant 3rdParty
+participant WebInterface
+participant 3rdPartyRequestHandler
+participant 3rdPartyAuthorizationManager
+participant DataHandler
+participant UserRequestHandler
+participant ApplicationInterface
+participant User
+
+3rdParty->WebInterface:clickUsersListButton()
+activate 3rdParty
+activate WebInterface
+WebInterface->3rdPartyRequestHandler:sendUsersListRequest(partyID)
+activate 3rdPartyRequestHandler
+3rdPartyRequestHandler->DataHandler:forwardUsersListRequest(partyID)
+activate DataHandler
+DataHandler->DataHandler:queryDBMS()
+activate DataHandler
+space
+deactivate DataHandler
+3rdPartyRequestHandler<--DataHandler:usersList
+deactivate DataHandler
+WebInterface<--3rdPartyRequestHandler:usersList
+deactivate 3rdPartyRequestHandler
+WebInterface->WebInterface:displayUsersListPage(usersList)
+activate WebInterface
+space
+deactivate WebInterface
+3rdParty<--WebInterface:
+deactivate WebInterface
+
+3rdParty->WebInterface:clickAddUserButton()
+
+activate WebInterface
+WebInterface->WebInterface:displayAddUserForm()
+activate WebInterface
+space
+deactivate WebInterface
+3rdParty<--WebInterface:
+rbox right of 3rdParty:boolean isLooping := TRUE
+loop (isLooping == TRUE)
+3rdParty->WebInterface:fillUpForm(fiscalCode)
+WebInterface->3rdPartyRequestHandler:sendAddUserRequest(fiscalCode, partyID)
+activate 3rdPartyRequestHandler
+3rdPartyRequestHandler->3rdPartyAuthorizationManager:forwardAddUserRequest(fiscalCode, partyID)
+activate 3rdPartyAuthorizationManager
+3rdPartyAuthorizationManager->DataHandler:checkUserRegisteredToParty(fiscalCode)
+activate DataHandler
+DataHandler->DataHandler:queryDBMS()
+activate DataHandler
+space
+deactivate DataHandler
+alt FiscalCode is associated with none of our registered users
+3rdPartyAuthorizationManager<--DataHandler:UnexistingFiscalCodeException
+deactivate DataHandler
+3rdPartyRequestHandler<--3rdPartyAuthorizationManager:UnexistingFiscalCodeException
+deactivate 3rdPartyAuthorizationManager
+WebInterface<--3rdPartyRequestHandler:UnexistingFiscalCodeException
+deactivate 3rdPartyRequestHandler
+WebInterface->WebInterface:showPopup(UnexistingFiscalCodeException)
+activate WebInterface
+space
+deactivate WebInterface
+
+3rdParty<--WebInterface:
+else User is already linked to 3rdParty
+activate 3rdPartyRequestHandler
+activate DataHandler
+activate 3rdPartyAuthorizationManager
+3rdPartyAuthorizationManager<--DataHandler:AlreadyRegisteredFiscalCodeException
+deactivate DataHandler
+3rdPartyRequestHandler<--3rdPartyAuthorizationManager:AlreadyRegisteredFiscalCodeException
+deactivate 3rdPartyAuthorizationManager
+WebInterface<--3rdPartyRequestHandler:AlreadyRegisteredFiscalCodeException
+deactivate 3rdPartyRequestHandler
+WebInterface->WebInterface:showPopup(AlreadyRegisteredFiscalCodeException)
+activate WebInterface
+space
+deactivate WebInterface
+3rdParty<--WebInterface:
+else User isn't linked to 3rdParty, so the request is sent to the user
+activate 3rdPartyRequestHandler
+activate DataHandler
+activate 3rdPartyAuthorizationManager
+3rdPartyAuthorizationManager<--DataHandler:userID
+deactivate DataHandler
+3rdPartyAuthorizationManager->UserRequestHandler:sendAuthorizationRequestToUser(userID, partyName)
+activate UserRequestHandler
+UserRequestHandler->ApplicationInterface:forwardAuthorizationRequestToUser(userID, partyName)
+activate ApplicationInterface
+ApplicationInterface->ApplicationInterface:showAuthorizationRequestNotification(partyName)
+activate ApplicationInterface
+space
+deactivate ApplicationInterface
+alt rejectRequest
+ApplicationInterface<-User:clickRejectButton()
+activate User
+ApplicationInterface-->User:
+deactivate User
+UserRequestHandler<--ApplicationInterface:rejectRequest
+deactivate ApplicationInterface
+3rdPartyAuthorizationManager<--UserRequestHandler:rejectRequest
+deactivate UserRequestHandler
+
+3rdPartyAuthorizationManager->DataHandler:get3rdPartyUsersList(partyID)
+activate DataHandler
+DataHandler->DataHandler:queryDBMS()
+activate DataHandler
+space
+deactivate DataHandler
+deactivateafter DataHandler
+else acceptRequest
+activate ApplicationInterface
+activate UserRequestHandler
+ApplicationInterface<-User:clickAcceptButton()
+activate User
+ApplicationInterface-->User:
+deactivate User
+UserRequestHandler<--ApplicationInterface:acceptRequest
+deactivate ApplicationInterface
+3rdPartyAuthorizationManager<--UserRequestHandler:acceptRequest
+deactivate UserRequestHandler
+3rdPartyAuthorizationManager->DataHandler:addUserToPartyList(userID, partyID)
+activate DataHandler
+DataHandler->DataHandler:updateDBMS()
+activate DataHandler
+space
+deactivate DataHandler
+end
+3rdPartyAuthorizationManager<--DataHandler:updatedUsersList
+deactivate DataHandler
+3rdPartyRequestHandler<--3rdPartyAuthorizationManager:updatedUsersList
+deactivate 3rdPartyAuthorizationManager
+WebInterface<--3rdPartyRequestHandler:updatedUsersList
+deactivate 3rdPartyRequestHandler
+WebInterface->WebInterface:displayUsersList(updatedUsersList)
+activate WebInterface
+space
+deactivate WebInterface
+3rdParty<--WebInterface:
+deactivate WebInterface
+rbox right of 3rdParty:isLooping := FALSE
+deactivate 3rdParty
+end
+end

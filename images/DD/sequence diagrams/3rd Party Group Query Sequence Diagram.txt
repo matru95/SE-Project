@@ -1,0 +1,61 @@
+title 3rd Party Group Query Sequence Diagram
+participant 3rdParty
+participant WebInterface
+participant 3rdPartyRequestHandler
+participant QueryHandler
+participant DataPresentation
+participant DataHandler
+
+3rdParty->WebInterface:clickNewGroupQueryButton()
+activate 3rdParty
+activate WebInterface
+WebInterface->WebInterface:displayGroupQueryForm()
+activate WebInterface
+space
+deactivate WebInterface
+3rdParty<--WebInterface:
+3rdParty->WebInterface:fillGroupQueryForm(queryParameters)
+WebInterface->3rdPartyRequestHandler:sendGroupQueryRequest(queryParameters)
+activate 3rdPartyRequestHandler
+3rdPartyRequestHandler->QueryHandler:forwardGroupQueryRequest(queryParameters)
+activate QueryHandler
+QueryHandler->DataHandler:getUsersSatisfyingParameters(queryParameters)
+activate DataHandler
+DataHandler->DataHandler:queryDBMS()
+activate DataHandler
+space
+deactivate DataHandler
+QueryHandler<--DataHandler:queryResult
+deactivate DataHandler
+QueryHandler->QueryHandler:checkGroupQueryUsersNumber(queryResult)
+activate QueryHandler
+deactivateafter QueryHandler
+alt usersNumber < 1000
+3rdPartyRequestHandler<--QueryHandler:numberOfUsersTooSmallException
+deactivate QueryHandler
+WebInterface<--3rdPartyRequestHandler:numberOfUsersTooSmallException
+deactivate 3rdPartyRequestHandler
+WebInterface->WebInterface:showPopup(numberOfUsersTooSmallException)
+activate WebInterface
+deactivateafter WebInterface
+else usersNumber >= 1000
+activate QueryHandler
+activate 3rdPartyRequestHandler
+QueryHandler->DataPresentation:sendDataForPresentation(queryResult)
+activate DataPresentation
+DataPresentation->DataPresentation:dataProcessingAndPlotting(queryResult)
+activate DataPresentation
+deactivateafter DataPresentation
+QueryHandler<--DataPresentation:processedQueryResult
+deactivate DataPresentation
+3rdPartyRequestHandler<--QueryHandler:processedQueryResult
+deactivate QueryHandler
+WebInterface<--3rdPartyRequestHandler:processedQueryResult
+deactivate 3rdPartyRequestHandler
+WebInterface->WebInterface:displayQueryResultPage(processedQueryResult)
+activate WebInterface
+deactivateafter WebInterface
+end
+3rdParty<--WebInterface:
+deactivate WebInterface
+deactivate 3rdParty

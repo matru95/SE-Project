@@ -1,0 +1,96 @@
+title 3rd Party Track4Run Sequence Diagram
+participant 3rdParty
+participant WebInterface
+participant 3rdPartyRequestHandler
+participant EventHandler
+participant MapViewer
+participant DataHandler
+3rdParty->WebInterface:clickTrack4RunButton()
+activate 3rdParty
+activate WebInterface
+WebInterface->3rdPartyRequestHandler:sendTrack4RunRequest()
+activate 3rdPartyRequestHandler
+3rdPartyRequestHandler->EventHandler:forwardTrack4RunRequest()
+activate EventHandler
+EventHandler->DataHandler:getPartyEventsList()
+activate DataHandler
+DataHandler->DataHandler:queryDBMS()
+activate DataHandler
+space
+deactivate DataHandler
+EventHandler<--DataHandler:partyEventsList
+deactivate DataHandler
+3rdPartyRequestHandler<--EventHandler:partyEventsList
+deactivate EventHandler
+WebInterface<--3rdPartyRequestHandler:partyEventsList
+deactivate 3rdPartyRequestHandler
+WebInterface->WebInterface:displayTrack4RunPage(partyEventslist)
+activate WebInterface
+space
+deactivate WebInterface
+3rdParty<--WebInterface:
+deactivate WebInterface
+3rdParty->WebInterface:clickCreateNewEventButton()
+activate WebInterface
+WebInterface->WebInterface:displayCreateNewEventForm()
+activate WebInterface
+space
+deactivate WebInterface
+3rdParty<--WebInterface:
+rbox right of 3rdParty:boolean isLooping := TRUE
+loop (isLooping == TRUE)
+3rdParty->WebInterface:fillUpForm(eventData)
+
+WebInterface->3rdPartyRequestHandler:sendCreateNewEventRequest(eventData)
+activate 3rdPartyRequestHandler
+3rdPartyRequestHandler->EventHandler:forwardCreateNewEventRequest(eventData)
+activate EventHandler
+EventHandler->MapViewer:provideMapToParty(partyID)
+activate MapViewer
+MapViewer->MapViewer:callAPI()
+activate MapViewer
+space
+deactivate MapViewer
+3rdPartyRequestHandler<-MapViewer:sendMapToPartyRequest(partyID)
+WebInterface<-3rdPartyRequestHandler:forwardMapToParty(partyID)
+WebInterface->WebInterface:displayMap()
+activate WebInterface
+space
+deactivate WebInterface
+3rdParty->WebInterface:selectEventPathOnMap(eventPath)
+WebInterface-->3rdPartyRequestHandler:eventPath
+3rdPartyRequestHandler-->MapViewer:eventPath
+EventHandler<--MapViewer:eventPath
+EventHandler->EventHandler:checkEventValidity(eventData, eventPath)
+activate EventHandler
+space
+deactivate EventHandler
+alt Invalid Event
+3rdPartyRequestHandler<--EventHandler:InvalidEventException
+deactivate EventHandler
+WebInterface<--3rdPartyRequestHandler:InvalidEventException
+deactivate 3rdPartyRequestHandler
+WebInterface->WebInterface:showPopup(InvalidEventException)
+activate WebInterface
+space
+deactivate WebInterface
+3rdParty<--WebInterface:
+deactivate WebInterface
+else Valid Event
+activate EventHandler
+activate 3rdPartyRequestHandler
+activate WebInterface
+3rdPartyRequestHandler<--EventHandler:eventConfirmation
+deactivate EventHandler
+WebInterface<--3rdPartyRequestHandler:eventConfirmation
+deactivate 3rdPartyRequestHandler
+WebInterface->WebInterface:showPopup(eventConfirmation)
+activate WebInterface
+space
+deactivate WebInterface
+3rdParty<--WebInterface:
+deactivate WebInterface
+rbox right of 3rdParty:isLooping := FALSE
+deactivate 3rdParty
+end
+end

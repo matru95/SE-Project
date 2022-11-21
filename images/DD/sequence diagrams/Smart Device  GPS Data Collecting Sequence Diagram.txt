@@ -1,0 +1,43 @@
+title Smart Device & GPS Data Collecting Sequence Diagram
+participant GPS
+participant SmartDevice
+participant UserRequestHandler
+participant DeviceDataCatcher
+participant DataHandler
+
+loop Iterate over each active user in a specified unit of time
+UserRequestHandler<-DeviceDataCatcher:sendDeviceDataRequest(userID)
+activate DeviceDataCatcher
+SmartDevice<-UserRequestHandler:forwardDeviceDataRequest(userID)
+activate UserRequestHandler
+activate SmartDevice
+SmartDevice-->UserRequestHandler:deviceData
+deactivate SmartDevice
+UserRequestHandler-->DeviceDataCatcher:deviceData
+deactivate UserRequestHandler
+DeviceDataCatcher->DataHandler:collectData(deviceData, userID)
+activate DataHandler
+DataHandler->DataHandler:updateDBMS()
+activate DataHandler
+space
+deactivate DataHandler
+DeviceDataCatcher<--DataHandler:
+deactivate DataHandler
+UserRequestHandler<-DeviceDataCatcher:sendGPSDataRequest(userID)
+activate UserRequestHandler
+GPS<-UserRequestHandler:forwardGPSDataRequest(userID)
+activate GPS
+GPS-->UserRequestHandler:gpsData
+deactivate GPS
+UserRequestHandler-->DeviceDataCatcher:gpsData
+deactivate UserRequestHandler
+DeviceDataCatcher->DataHandler:collectData(gpsData, userID)
+activate DataHandler
+DataHandler->DataHandler:updateDBMS()
+activate DataHandler
+space
+deactivate DataHandler
+DeviceDataCatcher<--DataHandler:
+deactivate DataHandler
+deactivate DeviceDataCatcher
+end

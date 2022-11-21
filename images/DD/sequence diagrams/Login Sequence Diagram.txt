@@ -1,0 +1,101 @@
+title Login Sequence Diagram
+participant User
+participant ApplicationInterface
+participant UserRequestHandler
+participant AuthenticationHandler
+participant DataHandler
+User->ApplicationInterface:clickLoginPageButton()
+activate User
+activate ApplicationInterface
+
+ApplicationInterface->ApplicationInterface:displayLoginPage()
+activate ApplicationInterface
+space
+deactivate ApplicationInterface
+User<--ApplicationInterface:
+
+
+rbox right of User:boolean isLooping := TRUE
+loop (isLooping == TRUE)
+User->ApplicationInterface:fillUpForm(email, password)
+
+
+ApplicationInterface->UserRequestHandler:sendLoginRequest(email,password)
+activate UserRequestHandler
+UserRequestHandler->AuthenticationHandler:forwardLoginRequest(email,password)
+activate AuthenticationHandler
+AuthenticationHandler->DataHandler:getCredentials(email)
+activate DataHandler
+
+
+DataHandler->DataHandler:queryDBMS()
+
+
+
+alt NotExistingCredentials
+
+AuthenticationHandler<--DataHandler:NotExistingCredentialsException
+deactivate DataHandler
+
+UserRequestHandler<--AuthenticationHandler:NotExistingCredentialsException
+deactivate AuthenticationHandler
+ApplicationInterface<--UserRequestHandler:NotExistingCredentialsException
+deactivate UserRequestHandler
+ApplicationInterface->ApplicationInterface:showPopup(NotExistingCredentialsException)
+activate ApplicationInterface
+space
+deactivate ApplicationInterface
+deactivateafter ApplicationInterface
+
+
+else ExistingCredentials
+activate DataHandler
+activate AuthenticationHandler
+activate UserRequestHandler
+activate ApplicationInterface
+
+AuthenticationHandler<--DataHandler:credentials: (emailCorrect, pswdCorrect)
+deactivate DataHandler
+
+assert
+AuthenticationHandler->AuthenticationHandler:credentialsDoCorrespond(email, password, emailCorrect, pswdCorrect)
+activate AuthenticationHandler
+space
+deactivate AuthenticationHandler
+end 
+
+alt WrongCredentials
+UserRequestHandler<--AuthenticationHandler:WrongCredentialsException
+deactivate AuthenticationHandler
+ApplicationInterface<--UserRequestHandler:
+deactivate UserRequestHandler
+ApplicationInterface->ApplicationInterface:showPopup(WrongCredentialsException)
+activate ApplicationInterface
+space
+deactivate ApplicationInterface
+deactivateafter ApplicationInterface
+else CorrectCredentials
+activate AuthenticationHandler
+activate UserRequestHandler
+activate ApplicationInterface
+UserRequestHandler<--AuthenticationHandler:
+deactivate AuthenticationHandler
+ApplicationInterface<--UserRequestHandler:
+deactivate UserRequestHandler
+ApplicationInterface->ApplicationInterface:displayHomePage()
+activate ApplicationInterface
+space
+deactivate ApplicationInterface
+rbox right of User:isLooping := FALSE
+
+
+end 
+
+
+end
+
+end
+User<--ApplicationInterface:
+deactivate ApplicationInterface
+
+deactivate User
